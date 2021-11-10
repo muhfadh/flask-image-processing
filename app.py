@@ -40,28 +40,28 @@ def proses1():
     img=data
     print(img)
     # check mode
-    if 'otsu' in request.form.get('select_thresholding'):
-        mode = 'otsu'
-    elif 'niblack' in request.form.get('select_thresholding'):
-        mode = 'niblack'
-    elif 'sauvola' in request.form.get('select_thresholding'):
-        mode = 'sauvola'
-        
-    #process
-    if mode == 'otsu':
-        print('start otsu')
-        img_res = process.otsu_thresh(img)
-        print(img_res)
-        cv2.imwrite("/".join([target, 'result.jpg']),img_res)
-    elif mode == 'niblack':
-        img_res = process.niblack_thresh(img)
-        cv2.imwrite("/".join([target, 'result.jpg']),img_res)
-    elif mode == 'sauvola':
-        img_res = process.sauvola_thresh(img)
-        cv2.imwrite("/".join([target, 'result.jpg']),img_res)
+    if 'gauss_adaptive' in request.form.get('select_thresholding'):
+        mode = 'gauss_adaptive'
+    elif 'laplacian_convolution' in request.form.get('select_thresholding'):
+        mode = 'laplacian_convolution'
+    elif 'sobel_x_y' in request.form.get('select_thresholding'):
+        mode = 'sobel_x_y'
 
+    #process
+    if mode == 'gauss_adaptive':
+        img_res = process.gaussian_adaptive_thresh(img)
+        cv2.imwrite("/".join([target, 'result.jpg']),img_res)
+        data = 'Gaussian Adaptive Thresholding'
+    elif mode == 'laplacian_convolution':
+        img_res = process.laplacian_convolution(img)
+        cv2.imwrite("/".join([target, 'result.jpg']),img_res)
+        data = 'Laplacian Convolution'
+    elif mode == 'sobel_x_y':
+        img_res = process.sobel_x_y(img)
+        cv2.imwrite("/".join([target, 'result.jpg']),img_res)
+        data = 'Sobel X & Y'
     # forward to processing page
-    return redirect('/')
+    return render_template('proses.html', data=data)
 
 # retrieve file from 'static/images' directory
 @app.route('/static/images/<filename>')

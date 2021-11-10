@@ -1,40 +1,34 @@
 import cv2
-from numpy.core.fromnumeric import argsort
-from skimage.filters import threshold_otsu, threshold_niblack, threshold_sauvola
+import numpy as np
 
-def otsu_thresh(img):
-    img = cv2.imread(img, cv2.IMREAD_GRAYSCALE)
-    return cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+def gaussian_adaptive_thresh(img):
+    image = cv2.imread(img)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (7, 7), 0)
+    thresh = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 21, 4)
+    return thresh
 
 
-def niblack_thresh(img):
-    img = cv2.imread(img, cv2.IMREAD_GRAYSCALE)
-    res = img.copy()
-    thresh_niblack = threshold_niblack(img, window_size=25, k=0.8)
-    thresh_niblack = cv2.ximgproc.niBlackThreshold(img, maxValue=255, type=cv2.THRESH_BINARY_INV, blockSize=2*11+1, k=-0.2, binarizationMethod=cv2.ximgproc.BINARIZATION_NICK)
+def laplacian_convolution(img):
+    image = cv2.imread(img)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    laplacian = np.array((
+	[0, 1, 0],
+	[1, -4, 1],
+	[0, 1, 0]), dtype="int") 
+    opencvOutput = cv2.filter2D(gray, -1, laplacian)
 
-    binary_niblack = img > thresh_niblack
+    return opencvOutput
 
-    for i in range(res.shape[0]):
-        for j in range(res.shape[1]):
-            if binary_niblack[i][j]==True:
-                res[i][j]=255
-            else:
-                res[i][j]=0
-    return res
+def sobel_x_y(img):
+    image = cv2.imread(img)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gX = cv2.Sobel(gray, ddepth=cv2.CV_32F, dx=1, dy=0, ksize=3)
+    gY = cv2.Sobel(gray, ddepth=cv2.CV_32F, dx=0, dy=1, ksize=3)
 
-def sauvola_thresh(img):
-    img = cv2.imread(img, cv2.IMREAD_GRAYSCALE)
-    res = img.copy()
-    thresh_sauvola = threshold_sauvola(img, window_size=25)
-    thresh_sauvola = cv2.ximgproc.niBlackThreshold(img, maxValue=255, type=cv2.THRESH_BINARY_INV, blockSize=2*11+1, k=-0.2, binarizationMethod=cv2.ximgproc.BINARIZATION_SAUVOLA)
+    gX = cv2.convertScaleAbs(gX)
+    gY = cv2.convertScaleAbs(gY)
 
-    binary_sauvola = img > thresh_sauvola
+    combined = cv2.addWeighted(gX, 0.5, gY, 0.5, 0)
 
-    for i in range(res.shape[0]):
-        for j in range(res.shape[1]):
-            if binary_sauvola[i][j]==True:
-                res[i][j]=255
-            else:
-                res[i][j]=0
-    return res
+    return combined
